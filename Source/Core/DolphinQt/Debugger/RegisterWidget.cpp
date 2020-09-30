@@ -242,7 +242,9 @@ void RegisterWidget::PopulateTable()
         [i](u64 value) { rPS(i).SetPS1(value); });
   }
 
-  for (int i = 0; i < 8; i++)
+  // IBAT and DBAT registers have a gap starting at
+  // Register 4 so we iterate over the groups separately
+  for (int i = 0; i < 4; i++)
   {
     // IBAT registers
     AddRegister(
@@ -260,6 +262,29 @@ void RegisterWidget::PopulateTable()
                  PowerPC::ppcState.spr[SPR_DBAT0L + i * 2];
         },
         nullptr);
+  }
+  for (int i = 0; i < 4; i++)
+  {
+    // IBAT registers
+    AddRegister(
+        i + 4, 5, RegisterType::ibat, "IBAT" + std::to_string(4 + i),
+        [i] {
+          return (static_cast<u64>(PowerPC::ppcState.spr[SPR_IBAT4U + i * 2]) << 32) +
+                 PowerPC::ppcState.spr[SPR_IBAT4L + i * 2];
+        },
+        nullptr);
+    // DBAT registers
+    AddRegister(
+        i + 12, 5, RegisterType::dbat, "DBAT" + std::to_string(4 + i),
+        [i] {
+          return (static_cast<u64>(PowerPC::ppcState.spr[SPR_DBAT4U + i * 2]) << 32) +
+                 PowerPC::ppcState.spr[SPR_DBAT4L + i * 2];
+        },
+        nullptr);
+  }
+
+  for (int i = 0; i < 8; i++)
+  {
     // Graphics quantization registers
     AddRegister(
         i + 16, 7, RegisterType::gqr, "GQR" + std::to_string(i),
